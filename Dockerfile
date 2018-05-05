@@ -108,7 +108,7 @@ RUN apt-get remove -y \
   && apt-get autoremove -y && apt-get autoclean
 
 
-#COPY env.php ${HTTP_PREFIX}/htdocs
+COPY env.php ${HTTP_PREFIX}/htdocs
 
 COPY wp-config.php ${HTTP_PREFIX}/htdocs/wordpress
 
