@@ -1,0 +1,1 @@
+./configure --prefix=/usr/local/apache --enable-ssl --enable-proxy --enable-modules=all --enable-mods-shared=all --enable-module=so --enable-proxy-http --enable-proxy-balancer --enable-proxy-ajp --with-ssl --with-mpm=prefork --with-apr=/usr/local/apache/bin/apr-1-config --with-apr-util=/usr/local/apache/bin/apu-1-config --enable-cgi
