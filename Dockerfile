@@ -3,9 +3,11 @@ USER root
 
 ENV APR_FILE apr-1.6.3
 ENV APRU_FILE apr-util-1.6.1
-ENV HTTP_FILE httpd-2.4.28
+ENV HTTP_FILE httpd-2.4.33
 ENV PHP_FILE php-7.2.5
+ENV WP_FILE wordpress-4.9.5-en_CA 
 ENV HTTP_PREFIX /usr/local/apache
+ENV TMP_DIR /tmp
 
 # install dependancies for apr, httpd, and php7
 
@@ -25,88 +27,88 @@ RUN apt-get update \
      wget \
   && rm -rf /var/lib/apt/lists/* 
 
-WORKDIR /tmp
+WORKDIR ${TMP_DIR}
 
 # grab and extract apr
 
-RUN wget http://www-us.apache.org/dist//apr/apr-1.6.3.tar.gz \ 
+RUN wget http://www-us.apache.org/dist//apr/${APR_FILE}.tar.gz \ 
   && tar -zxvf ${APR_FILE}.tar.gz \
   && rm -f ${APR_FILE}.tar.gz
 
-WORKDIR /tmp/${APR_FILE}
+WORKDIR ${TMP_DIR}/${APR_FILE}
 
 # configure make, and install apr
 
 RUN ./configure --prefix=${HTTP_PREFIX} \
   && make && make install
 
-WORKDIR /tmp
+WORKDIR ${TMP_DIR} 
 
 # grab apr and extract
 
-RUN wget http://www-us.apache.org/dist//apr/apr-util-1.6.1.tar.gz \
+RUN wget http://www-us.apache.org/dist//apr/${APRU_FILE}.tar.gz \
   && tar -zxvf ${APRU_FILE}.tar.gz \
   && rm -f ${APRU_FILE}.tar.gz
 
-WORKDIR /tmp/${APRU_FILE}
+WORKDIR ${TMP_DIR}/${APRU_FILE}
 
 # configure make and install apru
 
 RUN ./configure --prefix=${HTTP_PREFIX} --with-apr=${HTTP_PREFIX}/bin/apr-1-config \
   && make && make install
 
-WORKDIR /tmp
+WORKDIR ${TMP_DIR} 
 
 # grab and extract apache
 
-RUN wget --no-check-certificate https://archive.apache.org/dist/httpd/httpd-2.4.28.tar.gz \
+RUN wget --no-check-certificate https://archive.apache.org/dist/httpd/${HTTP_FILE}.tar.gz \
   && tar -zxvf ${HTTP_FILE}.tar.gz \
   && rm -f ${HTTP_FILE}.tar.gz
 
-COPY configure-http.sh /tmp/${HTTP_FILE}
+COPY configure-http.sh ${TMP_DIR}/${HTTP_FILE}
 
-WORKDIR /tmp/${HTTP_FILE}
+WORKDIR ${TMP_DIR}/${HTTP_FILE}
 
 # configure make and install apache
 
 RUN ./configure-http.sh \
   && make &&  make install
 
-WORKDIR /tmp
+WORKDIR ${TMP_DIR} 
 
 # grab php7 and extract it
 
-RUN wget http://us1.php.net/distributions/php-7.2.5.tar.gz \
+RUN wget http://us1.php.net/distributions/${PHP_FILE}.tar.gz \
   && tar -zxvf ${PHP_FILE}.tar.gz \
   && rm -f ${PHP_FILE}.tar.gz
 
-COPY configure-php.sh /tmp/${PHP_FILE}
+COPY configure-php.sh ${TMP_DIR}/${PHP_FILE}
 
-WORKDIR /tmp/${PHP_FILE}
+WORKDIR ${TMP_DIR}/${PHP_FILE}
 
 # configure make and install php with php7 module for apache
 
 RUN ./configure-php.sh \
   && make && make install
 
-WORKDIR /tmp
+WORKDIR ${TMP_DIR} 
 
 #  grab wordpress and extract to http context
 
-RUN wget --no-check-certificate https://en-ca.wordpress.org/wordpress-4.9.5-en_CA.tar.gz \
-  && tar -zxvf wordpress-4.9.5-en_CA.tar.gz \
-  && rm -f wordpress-4.9.5-en_CA.tar.gz \
+RUN wget --no-check-certificate https://en-ca.wordpress.org/${WP_FILE}.tar.gz \
+  && tar -zxvf ${WP_FILE}.tar.gz \
+  && rm -f ${WP_FILE}.tar.gz \
   && mv -f wordpress ${HTTP_PREFIX}/htdocs
 
 # cleanup packages that are not needed anymore
 
-RUN apt-get remove -y \
+RUN apt-get purge -y --auto-remove \
   gcc \
   make \
   wget \
   openssl \
-  && apt-get autoremove -y && apt-get autoclean
-
+  && rm -rf /var/tmp/* \
+  && rm -rf /tmp/*
 
 COPY env.php ${HTTP_PREFIX}/htdocs
 
