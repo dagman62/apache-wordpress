@@ -1,6 +1,9 @@
 FROM dagman62/apache:2.4.33
 USER root
 
+RUN apt-get update \
+  && apt-get install -y curl
+
 VOLUME /usr/local/apache/htdocs
 
 ENV WORDPRESS_VERSION 4.9.5
@@ -11,7 +14,11 @@ RUN set -ex; \
 	echo "$WORDPRESS_SHA1 *wordpress.tar.gz" | sha1sum -c -; \
 # upstream tarballs include ./wordpress/ so this gives us /usr/src/wordpress
 	tar -xzf wordpress.tar.gz -C /usr/src/; \
-	rm wordpress.tar.gz; \
+	rm wordpress.tar.gz;
+
+RUN apt-get purge -y --auto-remove \
+  curl \
+  && rm -rf rm -rf /var/lib/apt/lists/*
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
