@@ -1,4 +1,4 @@
-FROM dagman62/apache:2.4.33 
+FROM dagman62/apache 
 USER root
 
 ENV WP_FILE wordpress-4.9.5-en_CA 
