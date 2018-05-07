@@ -18,8 +18,8 @@ RUN apt-get update \
 
 RUN apt-get purge -y --auto-remove \
   wget \
-  openssl \
   && rm -rf /var/tmp/* \
-  && rm -rf /tmp/*
+  && rm -rf /tmp/* \
+  && rm -rf rm -rf /var/lib/apt/lists/*
 
 COPY wp-config.php ${HTTP_PREFIX}/htdocs/wordpress
