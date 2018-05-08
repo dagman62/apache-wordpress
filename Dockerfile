@@ -23,5 +23,3 @@ RUN apt-get purge -y --auto-remove \
   && rm -rf rm -rf /var/lib/apt/lists/*
 
 COPY wp-config.php ${HTTP_PREFIX}/htdocs/wordpress
-
-COPY my-httpd.conf ${HTTP_PREFIX}/conf/httpd.conf
