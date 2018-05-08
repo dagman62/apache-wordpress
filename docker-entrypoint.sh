@@ -5,6 +5,12 @@ set -euo pipefail
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
 #  "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
+
+PREFIX=/usr/local/apache/htdocs
+
+user="daemon"
+group="daemon"
+
 file_env() {
 	local var="$1"
 	local fileVar="${var}_FILE"
@@ -23,39 +29,24 @@ file_env() {
 	unset "$fileVar"
 }
 
-if [[ "$1" == apache2* ]] || [ "$1" == php-fpm ]; then
-	if [ "$(id -u)" = '0' ]; then
-		case "$1" in
-			apache2*)
-				user="${APACHE_RUN_USER:-www-data}"
-				group="${APACHE_RUN_GROUP:-www-data}"
-				;;
-			*) # php-fpm
-				user='www-data'
-				group='www-data'
-				;;
-		esac
-	else
-		user="$(id -u)"
-		group="$(id -g)"
-	fi
+cd ${PREFIX}
 
-	if ! [ -e index.php -a -e wp-includes/version.php ]; then
-		echo >&2 "WordPress not found in $PWD - copying now..."
-		if [ "$(ls -A)" ]; then
-			echo >&2 "WARNING: $PWD is not empty - press Ctrl+C now if this is an error!"
-			( set -x; ls -A; sleep 10 )
-		fi
-		tar --create \
-			--file - \
-			--one-file-system \
-			--directory /usr/src/wordpress \
-			--owner "$user" --group "$group" \
-			. | tar --extract --file -
-		echo >&2 "Complete! WordPress has been successfully copied to $PWD"
+if ! [ -e ${PREFIX}/index.php -a -e ${PREFIX}/wp-includes/version.php ]; then
+	echo >&2 "WordPress not found in $PWD - copying now..."
+	if [ "$(ls -A)" ]; then
+		echo >&2 "WARNING: $PWD is not empty - press Ctrl+C now if this is an error!"
+		( set -x; ls -A; sleep 10 )
 	fi
+	tar --create \
+		--file - \
+		--one-file-system \
+		--directory /usr/src/wordpress \
+		--owner "$user" --group "$group" \
+		. | tar --extract --file -
+	echo >&2 "Complete! WordPress has been successfully copied to $PWD"
+fi
 
-	# TODO handle WordPress upgrades magically in the same way, but only if wp-includes/version.php's $wp_version is less than /usr/src/wordpress/wp-includes/version.php's $wp_version
+# TODO handle WordPress upgrades magically in the same way, but only if wp-includes/version.php's $wp_version is less than /usr/src/wordpress/wp-includes/version.php's $wp_version
 
 	# allow any of these "Authentication Unique Keys and Salts." to be specified via
 	# environment variables with a "WORDPRESS_" prefix (ie, "WORDPRESS_AUTH_KEY")
